@@ -97,8 +97,17 @@ enum ContinueWatchingMerge {
 
     /// A Plex show's own keys: its agent guid plus its external ids.
     static func plexShowKeys(_ show: PlexMetadata) -> [String] {
-        ([show.guid].compactMap { $0 } + (show.Guid ?? []).compactMap(\.id))
-            .compactMap { key(fromPlexGuid: $0, scope: "s") }
+        plexOwnKeys(show, scope: "s")
+    }
+
+    /// A Plex movie's or show's own keys, scoped by its type.
+    static func plexTitleKeys(_ title: PlexMetadata) -> [String] {
+        plexOwnKeys(title, scope: title.type == "movie" ? "m" : "s")
+    }
+
+    private static func plexOwnKeys(_ meta: PlexMetadata, scope: String) -> [String] {
+        ([meta.guid].compactMap { $0 } + (meta.Guid ?? []).compactMap(\.id))
+            .compactMap { key(fromPlexGuid: $0, scope: scope) }
     }
 
     /// Keys from external ids as Jellyfin names them ("Imdb", "Tmdb", "Tvdb").

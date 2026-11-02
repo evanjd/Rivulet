@@ -267,10 +267,10 @@ final class PlexProvider: MediaProvider, @unchecked Sendable {
         }
     }
 
-    func showIdentityKeys(for showIDs: [String]) async -> [String: [String]] {
-        let shows = (try? await networkManager.getGuids(serverURL: serverURL, authToken: authToken, ratingKeys: showIDs)) ?? []
-        return Dictionary(shows.compactMap { show in
-            show.ratingKey.map { ($0, ContinueWatchingMerge.plexShowKeys(show)) }
+    func identityKeys(for titleIDs: [String]) async -> [String: [String]] {
+        let titles = (try? await networkManager.getGuids(serverURL: serverURL, authToken: authToken, ratingKeys: titleIDs)) ?? []
+        return Dictionary(titles.compactMap { title in
+            title.ratingKey.map { ($0, ContinueWatchingMerge.plexTitleKeys(title)) }
         }, uniquingKeysWith: { first, _ in first })
     }
 

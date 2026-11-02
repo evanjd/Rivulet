@@ -289,7 +289,8 @@ enum PlexMediaMapper {
             parentArtwork: parentArtwork,
             grandparentArtwork: grandparentArtwork,
             versionCount: meta.Media.map { Set($0.map(\.id)).count },
-            editionTitle: meta.editionTitle
+            editionTitle: meta.editionTitle,
+            addedAt: meta.addedAt.map { Date(timeIntervalSince1970: TimeInterval($0)) }
         )
     }
 

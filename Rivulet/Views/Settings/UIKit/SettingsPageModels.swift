@@ -430,6 +430,8 @@ enum SettingsContent {
             // bare "Siri" row under SIRI.
             .header("Home"),
             SettingsRowItem(id: "homeRows", title: "Rows", kind: .navigation(.homeRows)),
+            toggle("mergeRecentlyAdded", "Merge Recently Added",
+                   key: PlexHomeViewController.mergeRecentlyAddedKey, default: false),
             SettingsRowItem(id: "homeHero", title: "Hero",
                             kind: .navigationValue(.homeHeroPicker, value: { homeHeroTitle })),
             toggle("personalizedRecs", "Personalized Recommendations", key: "enablePersonalizedRecommendations", default: false)

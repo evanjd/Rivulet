@@ -56,6 +56,11 @@ struct MediaItem: Identifiable, Hashable, Sendable, Codable {
     /// Keys naming the same title on any server (`ContinueWatchingMerge`); set
     /// on Continue Watching items only. Optional so cached items still decode.
     var identity: [String]?
+    /// When the server added it (a show or season: its newest episode; Plex
+    /// moves a season's `addedAt` forward with each new episode, measured on
+    /// PMS, while its `updatedAt` can be older). Orders
+    /// Home's merged Recently Added row. Optional so cached items still decode.
+    var addedAt: Date?
 
     init(
         ref: MediaItemRef,
@@ -80,7 +85,8 @@ struct MediaItem: Identifiable, Hashable, Sendable, Codable {
         grandparentArtwork: MediaArtwork?,
         versionCount: Int? = nil,
         editionTitle: String? = nil,
-        identity: [String]? = nil
+        identity: [String]? = nil,
+        addedAt: Date? = nil
     ) {
         self.ref = ref
         self.kind = kind
@@ -105,6 +111,7 @@ struct MediaItem: Identifiable, Hashable, Sendable, Codable {
         self.versionCount = versionCount
         self.editionTitle = editionTitle
         self.identity = identity
+        self.addedAt = addedAt
     }
 }
 
@@ -142,6 +149,15 @@ extension MediaItem {
         }
         guard let show, !show.itemID.isEmpty else { return nil }
         return "\(show.providerID)|\(show.itemID)"
+    }
+
+    /// The movie or show this item belongs to, keyed the same way: an
+    /// episode's or season's show, or the item itself. Nil for anything else.
+    var titleKey: String? {
+        switch kind {
+        case .movie, .show: ref.itemID.isEmpty ? nil : "\(ref.providerID)|\(ref.itemID)"
+        default: showKey
+        }
     }
 }
 

@@ -144,6 +144,10 @@ enum SettingsDescriptorStore {
             icon: "clock.arrow.trianglehead.counterclockwise.rotate.90",
             description: "Shows Recently Added and Recently Released rows in each library."
         ),
+        "mergeRecentlyAdded": SettingDescriptor(
+            icon: "clock.arrow.circlepath",
+            description: "Shows one Recently Added row above Continue Watching, with the newest movies and shows from all your libraries together. It replaces each library's own Recently Added row."
+        ),
         "personalizedRecs": SettingDescriptor(
             icon: "person.3",
             description: "Uses TMDB metadata and your watch history to surface personalized recommendations of unwatched content."

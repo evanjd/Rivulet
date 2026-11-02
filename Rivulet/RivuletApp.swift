@@ -70,7 +70,7 @@ struct RivuletApp: App {
             ServerDataStore.shared.reload()
         }
         ContinueWatchingRow.shared.fetchShowKeys = { providerID, showIDs in
-            await MediaProviderRegistry.shared.provider(for: providerID)?.showIdentityKeys(for: showIDs) ?? [:]
+            await MediaProviderRegistry.shared.provider(for: providerID)?.identityKeys(for: showIDs) ?? [:]
         }
         ContinueWatchingRow.shared.onResolved = { await TopShelfFeed.refresh() }
         PlexExtraServers.onChanged = {

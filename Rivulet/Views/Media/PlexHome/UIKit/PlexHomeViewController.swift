@@ -585,6 +585,8 @@ final class PlexHomeViewController: UIViewController {
     /// card's watch-state actions go to every copy, or one would bring it back.
     private var mergedCWOthers: [MediaItemRef: [MediaItem]] = [:]
     static let mergedContinueWatchingID = HomeSectionID(raw: "rivulet.continueWatching")
+    /// Every library's Recently Added row as one, when `mergesRecentlyAdded`.
+    static let mergedRecentlyAddedID = HomeSectionID(raw: "rivulet.recentlyAdded")
     /// One-shot view-side companion to `pendingCWRemovals`: the shelf slot
     /// (section, tile index) of the removal that triggered the next snapshot
     /// apply, so the visible row can animate a batch DELETE at that index
@@ -3400,6 +3402,13 @@ final class PlexHomeViewController: UIViewController {
         HeroContent(rawValue: SettingsStore.string("homeHeroContent", default: "")) ?? .trending
     }
 
+    /// Settings > Appearance > Home > Merge Recently Added: one newest-first
+    /// row above Continue Watching, across libraries and servers, in place of
+    /// each library's Recently Added row.
+    static let mergeRecentlyAddedKey = "mergeRecentlyAdded"
+    static var mergesRecentlyAdded: Bool { SettingsStore.bool(mergeRecentlyAddedKey, default: false) }
+    private var lastMergesRecentlyAdded = PlexHomeViewController.mergesRecentlyAdded
+
     /// The list the hero shows, as Home last built it.
     private var listHeroItems: [MediaItem] = []
     private var lastHeroContent = PlexHomeViewController.heroContent
@@ -3420,8 +3429,11 @@ final class PlexHomeViewController: UIViewController {
         case .trending: return []
         case .continueWatching: return sections.first { $0.kind == .continueWatching }?.items ?? []
         case .recentlyAdded:
+            // The merged row's own order when it is on, so the hero and the row agree.
             let rows = rail.filter { !$0.row.isContinueWatching && Self.isRecentlyAddedRow($0.row) }
-            return Array(Self.roundRobin(rows.map(\.row.items))
+            let items = sections.first { $0.id == Self.mergedRecentlyAddedID }?.items
+                ?? Self.roundRobin(rows.map(\.row.items))
+            return Array(items
                 .filter { ($0.grandparentArtwork?.backdrop ?? $0.artwork.backdrop) != nil }
                 .prefix(10))
         case .watchlist:
@@ -3430,9 +3442,18 @@ final class PlexHomeViewController: UIViewController {
         }
     }
 
-    /// Plex's recently added hubs (`movie.recentlyadded`) and every other server's `<library>.recentlyAdded` row.
+    /// Plex's recently added hubs (`movie.recentlyadded`, `home.movies.recent`) and every other server's
+    /// `<library>.recentlyAdded` row.
     static func isRecentlyAddedRow(_ row: CachedHomeHub) -> Bool {
-        (row.hubIdentifier ?? row.id).lowercased().contains("recentlyadded")
+        isRecentlyAdded(identifier: row.hubIdentifier ?? row.id, title: row.title)
+    }
+
+    /// The one Recently Added test, for hubs and rows alike. Not Recently
+    /// Released or Recently Aired: those are ordered by release date.
+    nonisolated static func isRecentlyAdded(identifier: String?, title: String?) -> Bool {
+        let id = identifier?.lowercased() ?? ""
+        return id.contains("recentlyadded") || id.hasSuffix(".recent")
+            || (title?.lowercased() ?? "").contains("recently added")
     }
 
     /// One item from each list in turn, so no library's additions bury another's.
@@ -3578,6 +3599,10 @@ final class PlexHomeViewController: UIViewController {
                 if case .home = self.mode {
                     if Self.heroContent != self.lastHeroContent {
                         self.lastHeroContent = Self.heroContent
+                        self.applySnapshot(animated: false)
+                    }
+                    if Self.mergesRecentlyAdded != self.lastMergesRecentlyAdded {
+                        self.lastMergesRecentlyAdded = Self.mergesRecentlyAdded
                         self.applySnapshot(animated: false)
                     }
                     let userID = UserDefaults.standard.integer(forKey: PlexProfileSession.contentUserIDKey)
@@ -3889,7 +3914,8 @@ final class PlexHomeViewController: UIViewController {
             Perf.interval(.cellPrepare, key: perfKey) {
                 let item = section.items[indexPath.item]
                 cell.configure(item: item)
-                if section.kind == .searchGrid {
+                // Rows mixing servers name each tile's server.
+                if section.kind == .searchGrid || section.id == Self.mergedRecentlyAddedID {
                     cell.setSourceBadge(Self.sourceBadge(for: item.ref,
                                                          labelsServers: ServerDataStore.shared.labelsServers))
                 }
@@ -4383,6 +4409,10 @@ final class PlexHomeViewController: UIViewController {
         let labelsServers = jellyfin.labelsServers
         let rail = Self.homeRail(plex: dataStore.homeItems, jellyfin: jellyfin.visibleHomeRows,
                                  libraryOrder: Self.sidebarLibraryOrder())
+        // The merged Recently Added row goes here, above Continue Watching.
+        let mergesRecent = Self.mergesRecentlyAdded
+        let mergedRecentIndex = sections.count
+        var recentRows: [[MediaItem]] = []
         var cwOthers: [MediaItemRef: [MediaItem]] = [:]
         if labelsServers {
             // A removal in flight hides the whole card, so another server's copy
@@ -4400,6 +4430,12 @@ final class PlexHomeViewController: UIViewController {
         }
         mergedCWOthers = cwOthers
         for (hub, kind) in rail where !(labelsServers && hub.isContinueWatching) {
+            // Movies and shows only: a music row keeps its own square tiles.
+            if mergesRecent, !hub.isContinueWatching, Self.isRecentlyAddedRow(hub),
+               !hub.items.contains(where: { $0.isMusic == true }) {
+                recentRows.append(hub.items)
+                continue
+            }
             let id = HomeSectionID(raw: hub.id)
             let merged = mergedItems(forSection: id, initial: hub.items)
             var items = merged.items
@@ -4419,10 +4455,27 @@ final class PlexHomeViewController: UIViewController {
                 ? Self.serverName(providerID: hub.items.first?.ref.providerID, kind: kind) : nil
             sections.append(section)
         }
+        // Across servers the same title shows once, matched on ids as Continue
+        // Watching is. A title waits out of the row while its ids are fetched
+        // (once per title, kept), so no duplicate flashes first.
+        let titleKeys: (MediaItem) -> [String]? = Set(recentRows.joined().map(\.ref.providerID)).count > 1
+            ? ContinueWatchingRow.shared.identityKeys(Array(recentRows.joined()), titleKey: \.titleKey)
+            : { _ in [] }
+        let recent = RecentlyAddedMerge.merge(recentRows.map { $0.filter { titleKeys($0) != nil } },
+                                              id: \.ref, keys: { titleKeys($0) ?? [] }, added: \.addedAt)
+        if !recent.isEmpty {
+            // No hubKey: nothing pages in behind it.
+            sections.insert(.hub(id: Self.mergedRecentlyAddedID, title: String(localized: "Recently Added"),
+                                 items: recent, isContinueWatching: false, hubKey: nil,
+                                 hubIdentifier: Self.mergedRecentlyAddedID.raw),
+                            at: mergedRecentIndex)
+        }
 
         if showsYearInReview {
-            // Under Continue Watching, or under the hero when there is none.
+            // Under Continue Watching, else under the merged Recently Added row
+            // above it, else under the hero.
             let anchor = sections.lastIndex { $0.kind == .continueWatching }
+                ?? sections.firstIndex { $0.id == Self.mergedRecentlyAddedID }
                 ?? sections.lastIndex { $0.kind == .hero }
             sections.insert(.yearInReview(), at: anchor.map { $0 + 1 } ?? 0)
         }
@@ -4769,9 +4822,7 @@ final class PlexHomeViewController: UIViewController {
 
     /// `/hubs` names these `home.movies.recent`, the library pages `movie.recentlyadded.1`.
     nonisolated static func isRecentlyAdded(_ hub: PlexHub) -> Bool {
-        let id = hub.hubIdentifier?.lowercased() ?? ""
-        let title = hub.title?.lowercased() ?? ""
-        return id.contains("recentlyadded") || id.hasSuffix(".recent") || title.contains("recently added")
+        isRecentlyAdded(identifier: hub.hubIdentifier, title: hub.title)
     }
 
     // MARK: - Hero selection

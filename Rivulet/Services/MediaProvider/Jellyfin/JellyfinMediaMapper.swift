@@ -163,7 +163,8 @@ enum JellyfinMediaMapper {
             artwork: artwork(dto, baseURL: baseURL),
             parentArtwork: parentArtwork,
             grandparentArtwork: grandparentArtwork,
-            versionCount: dto.mediaSourceCount
+            versionCount: dto.mediaSourceCount,
+            addedAt: (dto.dateLastContentAdded ?? dto.dateCreated).flatMap { parseDate($0) }
         )
     }
 

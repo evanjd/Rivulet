@@ -142,9 +142,10 @@ protocol MediaProvider: Sendable, Identifiable {
     /// nil when the backend has none. Default = nil so backends opt in.
     func contentAdvisory(for ref: MediaItemRef) async throws -> ContentAdvisory?
 
-    /// Identity keys (`ContinueWatchingMerge`) for these shows, by show item id,
-    /// fetched in as few requests as the server allows. Default: none.
-    func showIdentityKeys(for showIDs: [String]) async -> [String: [String]]
+    /// Identity keys (`ContinueWatchingMerge`) for these shows and movies, by
+    /// item id, each scoped by its type, fetched in as few requests as the
+    /// server allows. Default: none.
+    func identityKeys(for titleIDs: [String]) async -> [String: [String]]
 
     /// Skip markers (intro, credits, ...) for the item. Default: none.
     /// Best effort: a backend without the data returns an empty value.
@@ -168,7 +169,7 @@ extension MediaProvider {
         throw MediaProviderError.transcodeRequired
     }
     func playbackExtras(for itemRef: MediaItemRef, sourceID: String?) async -> PlaybackExtras { PlaybackExtras() }
-    func showIdentityKeys(for showIDs: [String]) async -> [String: [String]] { [:] }
+    func identityKeys(for titleIDs: [String]) async -> [String: [String]] { [:] }
     func contentAdvisory(for ref: MediaItemRef) async throws -> ContentAdvisory? { nil }
     func search(_ query: String, inLibraries libraryIDs: [String]) async throws -> [MediaItem] {
         try await search(query)

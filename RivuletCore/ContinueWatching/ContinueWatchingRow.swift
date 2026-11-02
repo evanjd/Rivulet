@@ -22,7 +22,8 @@ final class ContinueWatchingRow: ObservableObject {
     /// Bumped when show identities arrive, so the row re-merges.
     @Published private(set) var version = 0
 
-    /// Set by the host: a server's show ids to their keys, in as few requests
+    /// Set by the host: a server's show ids (on tvOS also movie ids, for
+    /// `identityKeys`) to their keys, in as few requests
     /// as it allows ([:] when the lookup failed). Unset, episodes merge only on
     /// the keys they carry.
     var fetchShowKeys: ((_ providerID: String, _ showIDs: [String]) async -> [String: [String]])?
@@ -56,6 +57,23 @@ final class ContinueWatchingRow: ObservableObject {
         return ContinueWatchingMerge.merge(ready, keys: { item in
             identity(item) + (showKey(item).flatMap { self.showKeys[$0] } ?? [])
         }, watched: watched)
+    }
+
+    /// Identity keys for items merged by title rather than by watch (tvOS's
+    /// merged Recently Added row), from the same lookup and cache as episodes'
+    /// shows. `titleKey` is "<providerID>|<id>" of the item's movie or show.
+    /// The returned function gives an item's keys, [] when it has no title key
+    /// or its lookup failed, and nil while its lookup is in flight.
+    func identityKeys<Item>(_ items: [Item], titleKey: @escaping (Item) -> String?) -> (Item) -> [String]? {
+        let missing = Set(items.compactMap(titleKey).filter { showKeys[$0] == nil && !failed.contains($0) })
+        if !missing.isEmpty { resolve(missing) }
+        let known = showKeys
+        let failedNow = failed
+        return { item in
+            guard let key = titleKey(item) else { return [] }
+            if let keys = known[key] { return keys }
+            return failedNow.contains(key) ? [] : nil
+        }
     }
 
     private func resolve(_ keys: Set<String>) {

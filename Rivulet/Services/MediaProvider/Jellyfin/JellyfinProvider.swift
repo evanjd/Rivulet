@@ -232,15 +232,16 @@ final class JellyfinProvider: MediaProvider, @unchecked Sendable {
         return dates
     }
 
-    func showIdentityKeys(for showIDs: [String]) async -> [String: [String]] {
-        guard !showIDs.isEmpty else { return [:] }
+    func identityKeys(for titleIDs: [String]) async -> [String: [String]] {
+        guard !titleIDs.isEmpty else { return [:] }
         let result: JFQueryResult? = try? await client.get("Items", [
-            URLQueryItem(name: "ids", value: showIDs.joined(separator: ",")),
+            URLQueryItem(name: "ids", value: titleIDs.joined(separator: ",")),
             URLQueryItem(name: "fields", value: "ProviderIds"),
             URLQueryItem(name: "enableImages", value: "false")
         ])
-        return Dictionary((result?.items ?? []).compactMap { show in
-            show.id.map { ($0, ContinueWatchingMerge.providerIDKeys(show.providerIds ?? [:], scope: "s")) }
+        return Dictionary((result?.items ?? []).compactMap { title in
+            let scope = title.type == "Movie" ? "m" : "s"
+            return title.id.map { ($0, ContinueWatchingMerge.providerIDKeys(title.providerIds ?? [:], scope: scope)) }
         }, uniquingKeysWith: { first, _ in first })
     }
 
@@ -288,12 +289,8 @@ final class JellyfinProvider: MediaProvider, @unchecked Sendable {
         for library in videoLibraries {
             latest += try await latestItems(in: library, limit: limit)
         }
-        let newestFirst = latest.sorted { Self.addedDate($0) > Self.addedDate($1) }
-        return map(Array(newestFirst.prefix(limit)))
-    }
-
-    private static func addedDate(_ item: JFItem) -> Date {
-        (item.dateLastContentAdded ?? item.dateCreated).flatMap { JellyfinMediaMapper.parseDate($0) } ?? .distantPast
+        let newestFirst = map(latest).sorted { ($0.addedAt ?? .distantPast) > ($1.addedAt ?? .distantPast) }
+        return Array(newestFirst.prefix(limit))
     }
 
     /// Jellyfin has no curated hubs. HomeComposer synthesizes rails from
