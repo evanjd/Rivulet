@@ -241,6 +241,10 @@ enum SettingsDescriptorStore {
             icon: "backward.fill",
             description: "How far a single Left press skips back during playback."
         ),
+        "showPauseArtwork": SettingDescriptor(
+            icon: "pause.rectangle",
+            description: "After 10 seconds paused, the video gives way to the title's artwork, and dims after two minutes. When off, the paused frame stays on screen."
+        ),
         "showPostVideoUpNext": SettingDescriptor(
             icon: "rectangle.stack",
             description: "When off, closing credits play uninterrupted and the player returns to Home at the end of the episode."

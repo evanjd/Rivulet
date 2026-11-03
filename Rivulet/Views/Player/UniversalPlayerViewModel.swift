@@ -108,6 +108,10 @@ final class UniversalPlayerViewModel: ObservableObject {
     }
     @Published private(set) var pausePresentation: PausePresentation = .frame
 
+    /// Settings → Playback → Show Artwork. Off keeps the paused frame on
+    /// screen: neither ambient tier is ever scheduled.
+    static let pauseArtworkKey = "showPauseArtwork"
+
     /// Kept for existing call sites; true in either ambient tier.
     var showPausedPoster: Bool { pausePresentation != .frame }
 
@@ -4895,7 +4899,7 @@ final class UniversalPlayerViewModel: ObservableObject {
     /// open (`isRailPanelOpen`) — the ambient backdrop is a full-screen
     /// visual that would otherwise show through/around the panel.
     private func startPausedPosterTimer() {
-        guard !isRailPanelOpen else { return }
+        guard !isRailPanelOpen, SettingsStore.bool(Self.pauseArtworkKey, default: true) else { return }
         pausedPosterTimer?.invalidate()
         pausedPosterTimer = Timer.scheduledTimer(withTimeInterval: pausedPosterDelay, repeats: false) { [weak self] _ in
             Task { @MainActor [weak self] in

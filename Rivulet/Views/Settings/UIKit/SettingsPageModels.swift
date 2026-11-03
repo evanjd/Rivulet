@@ -503,6 +503,8 @@ enum SettingsContent {
             // Watching tile plays on Select, so it dims with Instant Resume off.
             toggle("promptResumeOrRestart", "Resume or Restart Prompt", key: "promptResumeOrRestart", default: false,
                    enabledWhen: { SettingsStore.bool("continueWatchingInstantResume", default: true) }),
+            .header("Pause"),
+            toggle("showPauseArtwork", "Show Artwork", key: UniversalPlayerViewModel.pauseArtworkKey, default: true),
             .header("Streaming Quality"),
             SettingsRowItem(id: "homeStreamingQuality", verbatim: String(localized: "streaming.home", defaultValue: "Home"),
                             kind: .navigationValue(.homeQualityPicker, value: {
