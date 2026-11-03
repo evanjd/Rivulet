@@ -73,6 +73,10 @@ final class ServerDataStore: ObservableObject {
         ) { [weak self] _ in
             MainActor.assumeIsolated { self?.reload() }
         }
+        // The Jellyfin server's socket reports a change: refetch that server alone.
+        JellyfinLiveRefresh.shared.onRefresh = { [weak self] provider in
+            Task { await self?.load(from: provider) }
+        }
     }
 
     var isSignedIn: Bool { !sources.isEmpty }
@@ -120,10 +124,10 @@ final class ServerDataStore: ObservableObject {
 
     /// Re-reads the signed-in servers and refetches each. Called at launch,
     /// from `JellyfinSession.onChanged`, when the extra Plex servers change,
-    /// on `.plexDataNeedsRefresh`, and on foreground.
-    // ponytail: no timed poll; content added on a server shows on the next
-    // foreground or watch-state change. Add one like PlexDataStore's 30s
-    // poll if that proves too slow.
+    /// on `.plexDataNeedsRefresh`, and on foreground. The Jellyfin server's
+    /// changes also arrive live over its socket (`JellyfinLiveRefresh`), which
+    /// refetches that server alone. There is no timed poll: content added on
+    /// an extra Plex server shows on the next foreground or watch-state change.
     func reload() {
         loadTask?.cancel()
         // The sidebar's Playlists rows follow every server reload, the selected Plex server's included.
@@ -135,7 +139,10 @@ final class ServerDataStore: ObservableObject {
         // foreground and watch-state change, and each publish redraws Home.
         update(\.sources, providers.map { Source(providerID: $0.id, name: $0.displayName) })
         // The server's Live TV follows the account into and out of Live TV.
-        JellyfinLiveTVProvider.sync(providers.first { $0.kind == .jellyfin } as? JellyfinProvider)
+        let jellyfin = providers.first { $0.kind == .jellyfin } as? JellyfinProvider
+        JellyfinLiveTVProvider.sync(jellyfin)
+        // Shared store only: tests build their own stores and must not open sockets.
+        if self === Self.shared { JellyfinLiveRefresh.shared.sync(jellyfin) }
         let gone = Set(slices.keys).subtracting(providers.map(\.id))
         gone.forEach { slices.removeValue(forKey: $0) }
         if !gone.isEmpty || providers.isEmpty { publish() }

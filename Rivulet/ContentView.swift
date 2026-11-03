@@ -120,7 +120,10 @@ struct ContentView: View {
             DiagLog.notice(.launch, "Scene \(phase)")
             if phase == .active {
                 Task { await dataStore.refreshLibraries() }
+                JellyfinLiveRefresh.shared.resume()
                 ServerDataStore.shared.reload()
+            } else if phase == .background {
+                JellyfinLiveRefresh.shared.suspend()
             }
         }
     }

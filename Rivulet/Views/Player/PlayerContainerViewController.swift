@@ -17,6 +17,15 @@ import Combine
 /// Container view controller that hosts the SwiftUI player view and intercepts button presses.
 /// This allows us to handle Menu button presses before SwiftUI dismisses the player.
 class PlayerContainerViewController: UIViewController {
+    /// Every VOD player that has loaded, held weakly; deallocated ones drop out.
+    private static let loaded = NSHashTable<PlayerContainerViewController>.weakObjects()
+
+    /// A VOD player is in a window. Background refreshes (the Jellyfin socket)
+    /// hold off while it is, since the player's exit refreshes anyway.
+    static var isOnScreen: Bool {
+        loaded.allObjects.contains { $0.viewIfLoaded?.window != nil }
+    }
+
 
     // MARK: - Properties
 
@@ -137,6 +146,7 @@ class PlayerContainerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        Self.loaded.add(self)
         view.backgroundColor = .black
 
         if let hosting = hostingController {
