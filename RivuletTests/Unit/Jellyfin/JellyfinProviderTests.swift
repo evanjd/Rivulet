@@ -339,6 +339,7 @@ final class JellyfinProviderTests: XCTestCase {
     // MARK: - Library extras
 
     private let movies = MediaLibrary(id: "lib-m", providerID: "jellyfin:srv", title: "Movies", kind: .movies)
+    private let shows = MediaLibrary(id: "lib-tv", providerID: "jellyfin:srv", title: "TV", kind: .shows)
 
     /// Home's per-library reload: one request, not the three `hubs(in:)` makes.
     func test_recentlyAddedHub_isOneRequest() async throws {
@@ -348,6 +349,36 @@ final class JellyfinProviderTests: XCTestCase {
         XCTAssertEqual(hub?.title, "Recently Added in Movies")
         XCTAssertEqual(hub?.items.map(\.ref.itemID), ["m2"])
         XCTAssertEqual(server.requests.map { $0.url!.path }, ["/Items/Latest"])
+    }
+
+    /// Latest lists a season when several of its episodes arrive together. A
+    /// season has no synopsis or air date of its own, so the row shows the
+    /// newest of those episodes instead, the same as a lone new episode.
+    func test_recentlyAddedHub_seasonBecomesItsNewestEpisode() async throws {
+        server.respond("/Items/Latest", body: """
+        [{"Id":"m2","Name":"28 Years Later","Type":"Movie"},
+         {"Id":"s26","Name":"Season 2026","Type":"Season","IndexNumber":2026,"SeriesId":"show1"}]
+        """)
+        server.respond("/Items", query: ["parentId": "s26"], body: """
+        {"Items":[{"Id":"ep182","Name":"Episode 182","Type":"Episode","IndexNumber":182,
+                   "ParentIndexNumber":2026,"SeriesId":"show1","SeasonId":"s26"}],"TotalRecordCount":1}
+        """)
+        let hub = try await provider().recentlyAddedHub(in: shows)
+        XCTAssertEqual(hub?.items.map(\.ref.itemID), ["m2", "ep182"])
+        XCTAssertEqual(hub?.items.last?.kind, .episode)
+        let lookup = try XCTUnwrap(server.requests.firstIndex { $0.url?.path.hasSuffix("/Items") == true })
+        let query = server.query(lookup)
+        XCTAssertTrue(query.contains(URLQueryItem(name: "sortBy", value: "DateCreated,IndexNumber")))
+        XCTAssertTrue(query.contains(URLQueryItem(name: "sortOrder", value: "Descending")))
+        XCTAssertTrue(query.contains(URLQueryItem(name: "limit", value: "1")))
+    }
+
+    /// A season whose episode lookup fails stays in the row as the season.
+    func test_recentlyAddedHub_seasonStaysWhenLookupFails() async throws {
+        server.respond("/Items/Latest", body: #"[{"Id":"s26","Name":"Season 2026","Type":"Season"}]"#)
+        server.respond("/Items", status: 500)
+        let hub = try await provider().recentlyAddedHub(in: shows)
+        XCTAssertEqual(hub?.items.map(\.ref.itemID), ["s26"])
     }
 
     /// A "Home Videos and Photos" library answers Items/Latest with photos

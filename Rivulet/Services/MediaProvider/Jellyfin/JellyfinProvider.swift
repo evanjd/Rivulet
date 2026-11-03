@@ -266,17 +266,49 @@ final class JellyfinProvider: MediaProvider, @unchecked Sendable {
     }
 
     private func latestItems(in library: MediaLibrary, limit: Int) async throws -> [JFItem] {
+        let fields = URLQueryItem(name: "fields", value: "Overview,RecursiveItemCount,SortName,ParentId,DateCreated,DateLastContentAdded,MediaSourceCount")
         var query = [
             URLQueryItem(name: "parentId", value: library.id),
             URLQueryItem(name: "limit", value: "\(limit)"),
-            URLQueryItem(name: "fields", value: "Overview,RecursiveItemCount,SortName,ParentId,DateCreated,DateLastContentAdded,MediaSourceCount")
+            fields
         ]
         // A "Home Videos and Photos" library also answers with photos, which
         // nothing here can open. Leaf types: the server groups episodes itself.
         if library.kind == .mixed {
             query.append(URLQueryItem(name: "includeItemTypes", value: "Movie,Episode,Video"))
         }
-        return try await client.get("Items/Latest", query)
+        let latest: [JFItem] = try await client.get("Items/Latest", query)
+        return await newestEpisodes(replacingSeasonsIn: latest, fields: fields)
+    }
+
+    /// Latest lists a season when several of its episodes arrive together. A
+    /// season has no synopsis or air date of its own, so each one is swapped
+    /// for the newest of its episodes (equal dates: the higher number), the
+    /// same as a lone new episode. One request per season; a failed one keeps
+    /// the season.
+    private func newestEpisodes(replacingSeasonsIn items: [JFItem], fields: URLQueryItem) async -> [JFItem] {
+        let client = self.client
+        return await withTaskGroup(of: (Int, JFItem?).self) { group in
+            for (index, item) in items.enumerated() where item.type == "Season" {
+                guard let seasonID = item.id else { continue }
+                group.addTask {
+                    let result: JFQueryResult? = try? await client.get("Items", [
+                        URLQueryItem(name: "parentId", value: seasonID),
+                        URLQueryItem(name: "includeItemTypes", value: "Episode"),
+                        URLQueryItem(name: "sortBy", value: "DateCreated,IndexNumber"),
+                        URLQueryItem(name: "sortOrder", value: "Descending"),
+                        URLQueryItem(name: "limit", value: "1"),
+                        fields
+                    ])
+                    return (index, result?.items?.first)
+                }
+            }
+            var resolved = items
+            for await (index, episode) in group {
+                if let episode { resolved[index] = episode }
+            }
+            return resolved
+        }
     }
 
     /// Asked per library: across every library at once, a 12.1 server returns
