@@ -106,6 +106,24 @@ final class TopShelfCache: Sendable {
         }
     }
 
+    /// What the Top Shelf leads with. Raw values are persisted.
+    enum Content: String, CaseIterable {
+        case continueWatching, recentlyAdded
+
+        var title: String {
+            switch self {
+            case .continueWatching: String(localized: "Continue Watching")
+            case .recentlyAdded: String(localized: "Recently Added")
+            }
+        }
+    }
+
+    /// Set in Settings; read by `TopShelfFeed`, which writes the matching items for the extension.
+    var content: Content {
+        get { sharedDefaults?.string(forKey: "topShelfContent").flatMap(Content.init(rawValue:)) ?? .continueWatching }
+        set { sharedDefaults?.set(newValue.rawValue, forKey: "topShelfContent") }
+    }
+
     // MARK: - Clear
 
     /// Remove all cached Top Shelf items

@@ -54,10 +54,12 @@ enum TopShelfFeed {
             others.removeAll { !shown.contains(MediaItemRef(providerID: $0.serverIdentifier, itemID: $0.ratingKey)) }
         }
 
-        var row = TopShelfMapper.merge(plex, others, limit: limit)
+        // Settings > Appearance > Top Shelf > Content can lead with Recently Added instead.
+        let showsRecent = TopShelfCache.shared.content == .recentlyAdded
+        var row = showsRecent ? [] : TopShelfMapper.merge(plex, others, limit: limit)
         let source = row.isEmpty ? "Recently Added" : "Continue Watching"
         var recent = recentlyAdded(serverURL: serverURL, token: token)
-        // No Continue Watching anywhere: Recently Added leads, and the carousel shows it.
+        // Recently Added chosen, or no Continue Watching anywhere: Recently Added leads, and the carousel shows it.
         if row.isEmpty {
             row = recent
             recent = []

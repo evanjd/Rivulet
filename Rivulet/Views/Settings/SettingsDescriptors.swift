@@ -120,9 +120,13 @@ enum SettingsDescriptorStore {
             icon: "sparkles.rectangle.stack",
             description: "The large banner at the top of the Home screen. Trending features popular titles from your library. Or pick one of your Home lists: Continue Watching, Recently Added or your Watchlist."
         ),
+        "topShelfContent": SettingDescriptor(
+            icon: "tv",
+            description: "What the top row of the Apple TV Home Screen shows. Continue Watching shows what you are watching, with Recently Added after it. Recently Added shows the newest titles you haven't watched."
+        ),
         "topShelfStyle": SettingDescriptor(
             icon: "tv",
-            description: "The top row of the Apple TV Home Screen. Posters shows a row of posters. Full Screen fills it with artwork from what you are watching."
+            description: "The top row of the Apple TV Home Screen. Posters shows a row of posters. Full Screen fills it with large artwork for each title."
         ),
         "skipPreview": SettingDescriptor(
             icon: "rectangle.expand.vertical",

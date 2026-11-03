@@ -420,10 +420,20 @@ enum SettingsContent {
                             kind: .toggle(
                                 get: { PlexUserProfileManager.shared.showProfilePickerOnLaunch },
                                 set: { PlexUserProfileManager.shared.showProfilePickerOnLaunch = $0 })),
-            SettingsRowItem(id: "topShelfStyle", title: "Top Shelf",
+            toggle("skipPreview", "Skip Preview", key: "skipPreviewCarousel", default: false),
+
+            .header("Top Shelf"),
+            SettingsRowItem(id: "topShelfContent", title: "Content",
+                            kind: .cycle(value: { TopShelfCache.shared.content.title },
+                                         next: {
+                                             let all = TopShelfCache.Content.allCases
+                                             let i = all.firstIndex(of: TopShelfCache.shared.content) ?? 0
+                                             TopShelfCache.shared.content = all[(i + 1) % all.count]
+                                             Task { await TopShelfFeed.refresh() }
+                                         })),
+            SettingsRowItem(id: "topShelfStyle", title: "Style",
                             kind: .cycle(value: { TopShelfCache.shared.fullScreen ? String(localized: "Full Screen") : String(localized: "Posters") },
                                          next: { TopShelfCache.shared.fullScreen.toggle() })),
-            toggle("skipPreview", "Skip Preview", key: "skipPreviewCarousel", default: false),
 
             // Titles drop whatever their caption already says ("Home Hero" under
             // HOME reads as "Home Home Hero"), the way Apple TV Settings puts a
