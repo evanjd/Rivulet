@@ -54,6 +54,14 @@ final class JellyfinMediaMapperTests: XCTestCase {
         XCTAssertEqual(ep.grandparentArtwork?.poster?.absoluteString, "http://jf.local:8096/Items/show1/Images/Primary?tag=showPrim")
     }
 
+    /// Measured on 12.1: a season sends no ParentPrimaryImage fields, only the
+    /// series' Primary tag (Jeopardy!'s "Season 2026" has no poster of its own).
+    func test_season_parentArtwork_isTheSeriesPoster() {
+        let season = item(#"{"Id":"s26","Name":"Season 2026","Type":"Season","IndexNumber":2026,"SeriesId":"show1","SeriesPrimaryImageTag":"showPrim"}"#)
+        XCTAssertNil(season.artwork.poster)
+        XCTAssertEqual(season.parentArtwork?.poster?.absoluteString, "http://jf.local:8096/Items/show1/Images/Primary?tag=showPrim")
+    }
+
     func test_playlist_cardArt_isPrimaryFilledTo16x9() {
         let list = item(#"{"Id":"pl1","Name":"Road Trip","Type":"Playlist","ImageTags":{"Primary":"pp"}}"#)
         XCTAssertEqual(list.artwork.backdrop?.absoluteString,

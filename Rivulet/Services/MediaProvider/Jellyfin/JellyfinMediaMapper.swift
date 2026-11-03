@@ -117,10 +117,14 @@ enum JellyfinMediaMapper {
         }
         let grandparentRef: MediaItemRef? = mediaKind == .episode ? ref(dto.seriesId) : nil
 
+        // A season's parent is its series. Jellyfin sends a season no
+        // ParentPrimaryImage fields, only the series' Primary tag.
         let parentArtwork: MediaArtwork? = {
-            guard mediaKind == .episode || mediaKind == .season,
-                  let poster = imageURL(baseURL, itemID: dto.parentPrimaryImageItemId, type: "Primary",
-                                        tag: dto.parentPrimaryImageTag)
+            guard mediaKind == .episode || mediaKind == .season else { return nil }
+            let series = mediaKind == .season
+                ? imageURL(baseURL, itemID: dto.seriesId, type: "Primary", tag: dto.seriesPrimaryImageTag) : nil
+            guard let poster = imageURL(baseURL, itemID: dto.parentPrimaryImageItemId, type: "Primary",
+                                        tag: dto.parentPrimaryImageTag) ?? series
             else { return nil }
             return MediaArtwork(poster: poster, backdrop: nil, thumbnail: poster, logo: nil)
         }()

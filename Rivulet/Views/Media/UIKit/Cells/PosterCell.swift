@@ -281,7 +281,8 @@ final class PosterCell: UICollectionViewCell {
         setSquare(item.isMusic == true)
         // Episodes prefer the grandparent (show) poster so hub rows render
         // show art instead of letterboxed episode stills, matching the Plex path.
-        let url = item.grandparentArtwork?.poster ?? item.artwork.poster
+        // A season with no poster of its own shows its show's.
+        let url = item.grandparentArtwork?.poster ?? item.artwork.poster ?? item.parentArtwork?.poster
         failureTitleText = item.title
         setEdition(item.editionTitle)
         loadImage(from: url, failureKind: item.kind)
