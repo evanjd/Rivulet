@@ -64,6 +64,15 @@ final class RecentlyAddedMergeTests: XCTestCase {
         XCTAssertEqual(merge([movies, shows]), ["m1", "m2", "s1", "m3"])
     }
 
+    /// Jellyfin's Latest lists a season by its newest episode but dates it by
+    /// the season itself (Jeopardy!'s "Season 2026": listed third, dated July).
+    func test_itemDatedOlderThanTheOneAfterIt_keepsItsPlaceInItsRow() {
+        let shows = [Item(id: "frenemies", added: 50), Item(id: "jeopardy", added: 1),
+                     Item(id: "hotSeat", added: 40), Item(id: "robot", added: 1)]
+        let movies = [Item(id: "gattaca", added: 45), Item(id: "memento", added: 5)]
+        XCTAssertEqual(merge([shows, movies]), ["frenemies", "gattaca", "jeopardy", "hotSeat", "memento", "robot"])
+    }
+
     func test_undatedHeadTakesTheFirstDateAfterIt() {
         let movies = [Item(id: "m1", added: nil), Item(id: "m2", added: 50)]
         let shows = [Item(id: "s1", added: 40)]

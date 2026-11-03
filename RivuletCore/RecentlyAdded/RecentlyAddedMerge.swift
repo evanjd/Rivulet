@@ -12,8 +12,12 @@ enum RecentlyAddedMerge {
     /// `rows` are newest first, as servers serve them. Dated items sort newest
     /// first; equal dates keep row order. An undated item in a dated row takes
     /// the date before it (or, at the head of its row, the first date after
-    /// it), so it keeps its place in its row. Rows with no dates at all (cached
-    /// before dates were kept) follow, interleaved one item per row in turn.
+    /// it), so it keeps its place in its row. A row's order is the server's
+    /// and outranks its dates: an item dated older than the one after it takes
+    /// that date (Jellyfin lists a season by its newest episode but dates it by
+    /// the season, so Jeopardy!'s "Season 2026" came third, dated July). Rows
+    /// with no dates at all (cached before dates were kept) follow,
+    /// interleaved one item per row in turn.
     /// The same title appears once, as its newest copy: items with the same
     /// `id`, or sharing any identity key (`ContinueWatchingMerge`: the same
     /// movie or show on another server). A dropped copy's keys still count,
@@ -29,9 +33,16 @@ enum RecentlyAddedMerge {
                 undatedRows.append(row)
                 continue
             }
-            for (item, date) in zip(row, dates) {
+            var filled: [Date] = []
+            for date in dates {
                 previous = date ?? previous
-                dated.append((item, previous, dated.count))
+                filled.append(previous)
+            }
+            for i in filled.indices.dropLast().reversed() where filled[i] < filled[i + 1] {
+                filled[i] = filled[i + 1]
+            }
+            for (item, date) in zip(row, filled) {
+                dated.append((item, date, dated.count))
             }
         }
         let newestFirst = dated.sorted { ($0.date, $1.order) > ($1.date, $0.order) }.map(\.item)
