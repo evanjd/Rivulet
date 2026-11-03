@@ -582,7 +582,7 @@ final class MediaDetailChromeView: UIView {
            let overview = detail.item.overview, !overview.isEmpty {
             // Episode: bold "S1, E1:" prefix before the synopsis.
             let color = UIColor.white.withAlphaComponent(0.85)
-            let attr = NSMutableAttributedString(string: String(localized: "S\(s), E\(e): "), attributes: [
+            let attr = NSMutableAttributedString(string: String(localized: "S\(String(s)), E\(String(e)): "), attributes: [
                 .font: UIFont.systemFont(ofSize: 23, weight: .bold), .foregroundColor: color])
             attr.append(NSAttributedString(string: overview, attributes: [
                 .font: Self.descriptionFont, .foregroundColor: color]))

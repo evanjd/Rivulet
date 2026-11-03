@@ -1778,7 +1778,7 @@ class PlayerContainerViewController: UIViewController {
             } else if item.kind == .movie {
                 String(localized: "Movie")
             } else if item.kind == .episode, let season = item.seasonNumber, let episode = item.episodeNumber {
-                String(localized: "S\(season) E\(episode)")
+                String(localized: "S\(String(season)) E\(String(episode))")
             } else {
                 nil
             }
@@ -1849,7 +1849,7 @@ class PlayerContainerViewController: UIViewController {
             rail?.setTitle(vm.title, eyebrow: vm.subtitle)
             return
         }
-        let number = [meta.parentIndex.map { String(localized: "S\($0)") }, meta.index.map { String(localized: "E\($0)") }]
+        let number = [meta.parentIndex.map { String(localized: "S\(String($0))") }, meta.index.map { String(localized: "E\(String($0))") }]
             .compactMap { $0 }.joined(separator: ", ")
         let eyebrow = [number, meta.title ?? ""].filter { !$0.isEmpty }.joined(separator: " • ")
         rail?.setTitle(show, eyebrow: eyebrow.isEmpty ? nil : eyebrow)

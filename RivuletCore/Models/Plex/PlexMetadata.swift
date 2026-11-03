@@ -608,7 +608,7 @@ extension PlexMetadata {
         }
 
         guard let index else { return nil }
-        return index == 0 ? String(localized: "Specials") : String(localized: "Season \(index)")
+        return SeasonTitle.title(index)
     }
 
     /// Extract a TMDB ID from a Plex guid string

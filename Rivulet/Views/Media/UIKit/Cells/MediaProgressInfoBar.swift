@@ -108,7 +108,7 @@ final class MediaProgressInfoBar: UIView {
         if item.type == "episode" {
             let season = item.parentIndex ?? 0
             let episode = item.index ?? 0
-            parts.append(String(localized: "S\(season), E\(episode)"))
+            parts.append(String(localized: "S\(String(season)), E\(String(episode))"))
         }
         if let remaining = item.remainingTimeFormatted {
             parts.append(remaining)
@@ -132,7 +132,7 @@ final class MediaProgressInfoBar: UIView {
 
         var parts: [String] = []
         if let s = item.seasonNumber, let e = item.episodeNumber {
-            parts.append(String(localized: "S\(s), E\(e)"))
+            parts.append(String(localized: "S\(String(s)), E\(String(e))"))
         }
         // Prefer remaining time; fall back to total runtime. Both in seconds.
         // Sub-minute values are suppressed (matches durationFormatted / remainingTimeFormatted

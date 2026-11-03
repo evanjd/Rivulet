@@ -475,7 +475,7 @@ final class MediaItemDetailPageViewController: UIViewController {
         let body = NSMutableAttributedString()
         let color = UIColor.white.withAlphaComponent(0.9)
         if let s = item.seasonNumber, let e = item.episodeNumber {
-            body.append(NSAttributedString(string: String(localized: "S\(s), E\(e): "), attributes: [
+            body.append(NSAttributedString(string: String(localized: "S\(String(s)), E\(String(e)): "), attributes: [
                 .font: UIFont.systemFont(ofSize: 23, weight: .bold), .foregroundColor: color]))
         }
         body.append(NSAttributedString(string: overview, attributes: [

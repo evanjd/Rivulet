@@ -568,7 +568,7 @@ extension PlexLiveTVProgram {
 
         var episodeLine: String?
         if isEpisode, let episode = index {
-            episodeLine = parentIndex.map { String(localized: "S\($0) E\(episode)") } ?? String(localized: "E\(episode)")
+            episodeLine = parentIndex.map { String(localized: "S\(String($0)) E\(String(episode))") } ?? String(localized: "E\(String(episode))")
         }
 
         return UnifiedProgram(

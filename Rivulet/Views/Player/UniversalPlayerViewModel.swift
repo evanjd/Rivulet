@@ -2700,7 +2700,7 @@ final class UniversalPlayerViewModel: ObservableObject {
             let seasonNum = metadata.parentIndex ?? 0
             let episodeNum = metadata.index ?? 0
             let epTitle = metadata.title ?? ""
-            displayTitle = String(localized: "S\(seasonNum) E\(episodeNum) · \(epTitle)")
+            displayTitle = String(localized: "S\(String(seasonNum)) E\(String(episodeNum)) · \(epTitle)")
         } else {
             displayTitle = metadata.title ?? ""
         }

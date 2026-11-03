@@ -3219,12 +3219,12 @@
         }
       }
     },
-    "E%lld" : {
+    "E%@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "F%lld"
+            "value" : "F%@"
           }
         }
       }
@@ -6205,18 +6205,18 @@
         }
       }
     },
-    "Play S%lld, E%lld" : {
+    "Play S%@, E%@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "S%lld, F%lld wiedergeben"
+            "value" : "S%@, F%@ wiedergeben"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Play S%1$lld, E%2$lld"
+            "value" : "Play S%1$@, E%2$@"
           }
         }
       }
@@ -7431,18 +7431,18 @@
         }
       }
     },
-    "Resume S%lld, E%lld" : {
+    "Resume S%@, E%@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "S%lld, F%lld fortsetzen"
+            "value" : "S%@, F%@ fortsetzen"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Resume S%1$lld, E%2$lld"
+            "value" : "Resume S%1$@, E%2$@"
           }
         }
       }
@@ -7527,6 +7527,80 @@
         }
       }
     },
+    "S%@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S%@"
+          }
+        }
+      }
+    },
+    "S%@ E%@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S%@ F%@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "S%1$@ E%2$@"
+          }
+        }
+      }
+    },
+    "S%@ E%@ · %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S%@ F%@ · %@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "S%1$@ E%2$@ · %3$@"
+          }
+        }
+      }
+    },
+    "S%@, E%@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S%@, F%@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "S%1$@, E%2$@"
+          }
+        }
+      }
+    },
+    "S%@, E%@: " : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "S%@, F%@: "
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "S%1$@, E%2$@: "
+          }
+        }
+      }
+    },
     "S%@E%@" : {
       "localizations" : {
         "de" : {
@@ -7539,80 +7613,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "S%1$@E%2$@"
-          }
-        }
-      }
-    },
-    "S%lld" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "S%lld"
-          }
-        }
-      }
-    },
-    "S%lld E%lld" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "S%lld F%lld"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "S%1$lld E%2$lld"
-          }
-        }
-      }
-    },
-    "S%lld E%lld · %@" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "S%lld F%lld · %@"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "S%1$lld E%2$lld · %3$@"
-          }
-        }
-      }
-    },
-    "S%lld, E%lld" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "S%lld, F%lld"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "S%1$lld, E%2$lld"
-          }
-        }
-      }
-    },
-    "S%lld, E%lld: " : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "S%lld, F%lld: "
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "S%1$lld, E%2$lld: "
           }
         }
       }
@@ -7827,12 +7827,12 @@
         }
       }
     },
-    "Season %lld" : {
+    "Season %@" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Staffel %lld"
+            "value" : "Staffel %@"
           }
         }
       }

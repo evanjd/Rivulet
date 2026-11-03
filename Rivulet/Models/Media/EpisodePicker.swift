@@ -63,13 +63,13 @@ enum EpisodePicker {
     ) -> String {
         // One string per form, never "Resume" + code: word order differs by language.
         if let season, let episode {
-            if resumes { return String(localized: "Resume S\(season), E\(episode)") }
+            if resumes { return String(localized: "Resume S\(String(season)), E\(String(episode))") }
         } else if resumes {
             return String(localized: "Resume")
         }
         if watched { return String(localized: "Play Again") }
         if isFirstEpisode { return String(localized: "Play First Episode") }
-        if let season, let episode { return String(localized: "Play S\(season), E\(episode)") }
+        if let season, let episode { return String(localized: "Play S\(String(season)), E\(String(episode))") }
         return String(localized: "Play")
     }
 

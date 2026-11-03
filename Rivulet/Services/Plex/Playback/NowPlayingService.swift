@@ -586,7 +586,7 @@ final class NowPlayingService: ObservableObject {
                 nowPlayingInfo[MPMediaItemPropertyArtist] = showName
             }
             if let seasonNum = metadata.parentIndex {
-                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = String(localized: "Season \(seasonNum)")
+                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = SeasonTitle.title(seasonNum)
             }
         } else if metadata.type == "movie" {
             // For movies, use year as artist if available
@@ -668,7 +668,7 @@ final class NowPlayingService: ObservableObject {
                 nowPlayingInfo[MPMediaItemPropertyArtist] = showName
             }
             if let seasonNum = metadata.parentIndex {
-                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = String(localized: "Season \(seasonNum)")
+                nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = SeasonTitle.title(seasonNum)
             }
         } else if metadata.type == "movie" {
             // For movies, use year as artist if available

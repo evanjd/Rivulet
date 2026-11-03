@@ -114,6 +114,15 @@ final class EpisodePickerTests: XCTestCase {
 
     // MARK: - playTitle
 
+    /// A year-numbered season once read "Play S2,026, E182": an Int
+    /// interpolation is localized with grouping.
+    func testYearNumberedSeasonHasNoGroupingSeparator() {
+        XCTAssertEqual(EpisodePicker.playTitle(resumes: false, watched: false, season: 2026, episode: 1182),
+                       "Play S2026, E1182")
+        XCTAssertEqual(EpisodePicker.playTitle(resumes: true, watched: false, season: 2026, episode: 1182),
+                       "Resume S2026, E1182")
+    }
+
     func testShowPageNamesTheNextEpisode() {
         let ep = episode("e3", season: 1, number: 3)
         XCTAssertEqual(EpisodePicker.playTitle(for: ep, on: .show), "Play S1, E3")
