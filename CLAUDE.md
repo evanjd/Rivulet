@@ -1042,8 +1042,8 @@ the code rather than suppress the rule.
 # Build for tvOS Simulator
 xcodebuild -scheme Rivulet -destination 'platform=tvOS Simulator,name=Apple TV' build
 
-# Build for device
-xcodebuild -scheme Rivulet -destination 'platform=tvOS,name=My Apple TV' build
+# Build for device (Release; see the rule below)
+xcodebuild -scheme Rivulet -configuration Release -destination 'platform=tvOS,name=My Apple TV' build
 
 # Run the full unit test suite (RivuletTests, XCTest, @testable import Rivulet)
 xcodebuild test -scheme Rivulet -destination 'platform=tvOS Simulator,name=Apple TV'
@@ -1054,6 +1054,12 @@ xcodebuild test -scheme Rivulet -destination 'platform=tvOS Simulator,name=Apple
 xcodebuild test -scheme Rivulet -destination 'platform=tvOS Simulator,name=Apple TV' \
   -only-testing:RivuletTests/MediaItemTests/test_id_returnsRef
 ```
+
+**Real devices get Release builds.** Deploy a Release build to a physical Apple TV
+unless a Debug build is actually needed (attaching the debugger, Debug-only logging
+or `#if DEBUG` hooks), and only deploy Debug with the user's express permission
+for that deploy. Debug is far slower on device (libass alone is ~12x), so a Debug
+install misrepresents how the app feels. The simulator stays on Debug.
 
 Most tests live in `RivuletTests/Unit/` (mirrors `Rivulet/` roughly by feature — Parsers, Playback, Player, Preferences, Services, Siri, etc.), with shared fixtures/mocks in `RivuletTests/Fixtures/`, `RivuletTests/Helpers/`, `RivuletTests/Mocks/`. A few sit at the `RivuletTests/` root (`PlexDeviceDecodingTests.swift`).
 
