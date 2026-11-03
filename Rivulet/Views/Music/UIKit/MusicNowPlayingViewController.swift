@@ -495,7 +495,8 @@ final class MusicNowPlayingViewController: UIViewController, UIGestureRecognizer
 
     /// Apple's ground is the artwork's colours with no picture left in them: here the cover's
     /// sixteen patch colours, each a soft blob, at one mid brightness so white text reads over any cover.
-    private nonisolated static func wash(_ image: UIImage) -> UIImage {
+    /// Shared with the library list, whose background is the same wash.
+    nonisolated static func wash(_ image: UIImage) -> UIImage {
         let (side, grid) = (32, 4)
         var pixels = [UInt8](repeating: 0, count: side * side * 4)
         let space = CGColorSpaceCreateDeviceRGB()

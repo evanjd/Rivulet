@@ -28,11 +28,12 @@ extension SortOption {
 
 /// How a library tab shows its contents, saved per library and profile.
 enum LibraryViewMode: String {
-    case titles, collections, folders
+    case list, titles, collections, folders
 
     // Display name; rawValue is persisted.
     var title: String {
         switch self {
+        case .list: String(localized: "List")
         case .titles: String(localized: "Titles")
         case .collections: String(localized: "Collections")
         case .folders: String(localized: "Folders")
@@ -41,6 +42,7 @@ enum LibraryViewMode: String {
 
     var symbol: String {
         switch self {
+        case .list: "list.bullet"
         case .titles: "square.grid.2x2"
         case .collections: "square.stack"
         case .folders: "folder"

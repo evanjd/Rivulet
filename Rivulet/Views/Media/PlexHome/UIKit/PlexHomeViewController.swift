@@ -3201,7 +3201,8 @@ final class PlexHomeViewController: UIViewController {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MediaLibrarySortControl.reuseID, for: indexPath) as! MediaLibrarySortControl
             // Read only when the cell is dequeued or reconfigured, which is why
             // a changed list calls refreshSortHeaderCount().
-            let modes: [LibraryViewMode] = [.titles] + (libraryCollections.isEmpty ? [] : [.collections])
+            let modes: [LibraryViewMode] = (onSelectViewMode == nil ? [] : [.list]) + [.titles]
+                + (libraryCollections.isEmpty ? [] : [.collections])
                 + (onSelectViewMode == nil ? [] : [.folders])
             let viewMenu = LibraryViewMode.menu(modes, current: gridShowsCollections ? .collections : .titles) {
                 [weak self] mode in

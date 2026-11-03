@@ -418,9 +418,9 @@ class LibrarySettingsManager: ObservableObject {
 
     /// Get the sort option for a specific library
     /// - Parameter libraryKey: The library key
-    /// - Returns: The configured sort option, or `.addedAtDesc` as default
+    /// - Returns: The configured sort option, or `.titleAsc` as default
     func getSortOption(for libraryKey: String) -> LibrarySortOption {
-        librarySortOptions[libraryKey] ?? .addedAtDesc
+        librarySortOptions[libraryKey] ?? .titleAsc
     }
 
     /// Set the sort option for a specific library
@@ -438,7 +438,7 @@ class LibrarySettingsManager: ObservableObject {
     /// The view this profile last left the library on.
     func viewMode(_ libraryKey: String) -> LibraryViewMode {
         (userDefaults.dictionary(forKey: currentKey(viewModeBaseKey))?[libraryKey] as? String)
-            .flatMap(LibraryViewMode.init) ?? .titles
+            .flatMap(LibraryViewMode.init) ?? .list
     }
 
     func setViewMode(_ mode: LibraryViewMode, for libraryKey: String) {

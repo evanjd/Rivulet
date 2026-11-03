@@ -600,6 +600,9 @@ struct TVSidebarView: View {
                     return MusicLibraryViewController(libraryKey: library.id, title: library.title,
                                                       providerID: library.providerID)
                 }
+                if library.kind == .movies || library.kind == .shows {
+                    return PlexLibraryModeViewController(provider: library)
+                }
                 return PlexHomeViewController(mode: .library(key: library.settingsKey, title: library.title),
                                               providerLibrary: library)
             }
