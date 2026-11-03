@@ -149,6 +149,9 @@ struct WhatsNewView: View {
     // MARK: - Changelog Data
 
     static let changelogs: [(version: String, features: [String])] = [
+        ("1.1.1 (121)", [
+            "Updated AetherEngine to 7.54.0",
+        ]),
         ("1.1.1 (120)", [
             "Episode and season pages now show their extras.",
             "The player's info panels stay open while you're reading them.",
