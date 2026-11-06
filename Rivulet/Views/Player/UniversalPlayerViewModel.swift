@@ -3222,7 +3222,7 @@ final class UniversalPlayerViewModel: ObservableObject {
             return
         }
         let isRelay = PlexRelay.isRelayURL(serverURL)
-        isHomeLocation = StreamingQuality.isHome(serverURL: serverURL)
+        isHomeLocation = await StreamingQuality.isHome(resolving: serverURL)
         let setting = sessionQuality ?? StreamingQuality.setting(home: isHomeLocation)
         qualityChoice = setting
         stallTracker = StallTracker()
@@ -3291,7 +3291,8 @@ final class UniversalPlayerViewModel: ObservableObject {
     /// Up Next may reuse a prewarmed direct URL only when nothing could turn the next item into a transcode.
     private var nextEpisodePlaysOriginal: Bool {
         guard !PlexRelay.isRelayURL(serverURL) else { return false }
-        return (sessionQuality ?? StreamingQuality.setting(home: StreamingQuality.isHome(serverURL: serverURL))) == .original
+        // `isHomeLocation` was decided for this session with the server name looked up.
+        return (sessionQuality ?? StreamingQuality.setting(home: isHomeLocation)) == .original
     }
 
     /// Auto's step-down: two stalls within a minute, or one lasting 10 s. Seeks and loads never count.

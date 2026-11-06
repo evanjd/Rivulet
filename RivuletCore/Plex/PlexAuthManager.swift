@@ -961,7 +961,7 @@ class PlexAuthManager: ObservableObject {
             isConnected = true
             connectionError = nil
             // A remote URL won away from home still answers there through the router's slow hairpin.
-            if ServerLocation.classify(currentURL) == .remote {
+            if await ServerLocation.resolving(currentURL) == .remote {
                 await upgradeConnectionIfBetterExists(from: currentURL)
             }
 

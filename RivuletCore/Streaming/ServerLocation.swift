@@ -4,7 +4,8 @@
 import Foundation
 import Network
 
-/// Where a playback server sits relative to this device, judged from its URL alone.
+/// Where a playback server sits relative to this device, judged from its URL alone
+/// (`classify`), or for a host name from the addresses it resolves to (`resolving`).
 nonisolated enum ServerLocation: Equatable, Sendable {
     case local
     case remote
@@ -19,6 +20,39 @@ nonisolated enum ServerLocation: Equatable, Sendable {
 
     static func classify(_ serverURL: String) -> ServerLocation {
         URL(string: serverURL).map(classify) ?? .remote
+    }
+
+    // MARK: - Host names
+
+    /// `classify`, after looking up a host name: a server reached by a name such as
+    /// `jellyfin.lan`, or a public name that split DNS answers with a LAN address at home, is
+    /// local when the name resolves to a private address. Nothing is cached: each call looks
+    /// the name up again (the system resolver caches), so leaving home is noticed. A failed or
+    /// slow lookup counts as remote.
+    static func resolving(_ serverURL: String) async -> ServerLocation {
+        guard let url = URL(string: serverURL), let host = url.host?.lowercased() else { return .remote }
+        let literal = classify(url)
+        if literal != .remote || isAddressLiteral(plexDirectAddress(host) ?? host) { return literal }
+        let addresses = await HostResolver.addresses(of: host)
+        let isLocal = addresses.map(resolvesLocal) ?? false
+        DiagLog.notice(.network, "Server name resolved: \(addresses == nil ? "failed" : isLocal ? "lan" : "public")")
+        return isLocal ? .local : .remote
+    }
+
+    /// A name is local when any of its addresses is private: a LAN server often also has a
+    /// global IPv6 address beside its private IPv4 one.
+    static func resolvesLocal(_ addresses: [String]) -> Bool {
+        addresses.contains { isPrivateAddress(stripZone($0)) }
+    }
+
+    static func isAddressLiteral(_ host: String) -> Bool {
+        let literal = stripZone(host.trimmingCharacters(in: CharacterSet(charactersIn: "[]")))
+        return IPv4Address(literal) != nil || IPv6Address(literal) != nil
+    }
+
+    /// `fe80::1%en0` → `fe80::1`.
+    private static func stripZone(_ address: String) -> String {
+        address.split(separator: "%", maxSplits: 1).first.map(String.init) ?? address
     }
 
     /// `192-168-1-140.<hash>.plex.direct` embeds the server's address with dashes.

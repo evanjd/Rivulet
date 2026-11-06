@@ -542,7 +542,9 @@ final class IOSPlexSession: ObservableObject {
         startTime: TimeInterval?
     ) async throws -> IOSPlexPlaybackRequest {
         let isRelay = PlexRelay.isRelayURL(serverURL)
-        let quality = quality ?? StreamingQuality.setting(home: StreamingQuality.isHome(serverURL: serverURL))
+        let quality = if let quality { quality } else {
+            StreamingQuality.setting(home: await StreamingQuality.isHome(resolving: serverURL))
+        }
         let media = full.Media ?? []
         var measurement = measurement
         if forced == nil, measurement == nil, QualityDecision.needsProbe(setting: quality, isRelay: isRelay),

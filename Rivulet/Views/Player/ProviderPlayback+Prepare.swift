@@ -61,7 +61,7 @@ extension ProviderPlayback {
     ) async -> (quality: ProviderQuality, sourceID: String) {
         let directURL = stream.source.streamKind == .directPlay ? stream.source.streamURL : nil
         var settled = ProviderQuality()
-        settled.isHome = StreamingQuality.isHome(serverURL: stream.source.streamURL?.absoluteString ?? "")
+        settled.isHome = await StreamingQuality.isHome(resolving: stream.source.streamURL?.absoluteString ?? "")
         settled.choice = quality ?? StreamingQuality.setting(home: settled.isHome)
         settled.probeURL = directURL
         if QualityDecision.needsProbe(setting: settled.choice, isRelay: false) {

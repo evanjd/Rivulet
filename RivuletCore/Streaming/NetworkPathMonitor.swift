@@ -25,4 +25,10 @@ extension StreamingQuality {
     nonisolated static func isHome(serverURL: String) -> Bool {
         ServerLocation.classify(serverURL) == .local && !NetworkPathMonitor.shared.isAwayPath
     }
+
+    /// `isHome`, looking a host name up first (`ServerLocation.resolving`). Use it wherever a
+    /// playback plan is decided, so a server reached by name is not taken for a remote one.
+    nonisolated static func isHome(resolving serverURL: String) async -> Bool {
+        await ServerLocation.resolving(serverURL) == .local && !NetworkPathMonitor.shared.isAwayPath
+    }
 }

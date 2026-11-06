@@ -42,4 +42,31 @@ final class ServerLocationTests: XCTestCase {
         XCTAssertEqual(loc("http://localhost:32400"), .local)
         XCTAssertEqual(loc("not a url"), .remote)
     }
+
+    func test_resolvedAddresses_anyPrivateIsLocal() {
+        XCTAssertTrue(ServerLocation.resolvesLocal(["192.168.1.20"]))
+        XCTAssertTrue(ServerLocation.resolvesLocal(["2001:db8::5", "10.0.0.4"]))
+        XCTAssertTrue(ServerLocation.resolvesLocal(["fe80::1%en0"]))
+        XCTAssertFalse(ServerLocation.resolvesLocal(["93.184.216.34", "2001:db8::5"]))
+        XCTAssertFalse(ServerLocation.resolvesLocal([]))
+    }
+
+    func test_addressLiterals() {
+        XCTAssertTrue(ServerLocation.isAddressLiteral("73.12.44.5"))
+        XCTAssertTrue(ServerLocation.isAddressLiteral("[2001:db8::1]"))
+        XCTAssertFalse(ServerLocation.isAddressLiteral("jellyfin.lan"))
+    }
+
+    func test_resolving_literalsSkipTheLookup() async {
+        let local = await ServerLocation.resolving("http://192.168.1.140:8096")
+        let remote = await ServerLocation.resolving("https://73.12.44.5:8096")
+        XCTAssertEqual(local, .local)
+        XCTAssertEqual(remote, .remote)
+    }
+
+    func test_resolving_localhostName() async {
+        // localhost is answered by the hosts file, so this exercises the real lookup offline.
+        let location = await ServerLocation.resolving("http://LocalHost.:8096")
+        XCTAssertEqual(location, .local)
+    }
 }
