@@ -1802,6 +1802,18 @@ enum DebugFocusDriver {
                 try? await Task.sleep(for: .seconds(1.2))
                 continue
             }
+            if word == "pdown" {
+                // The carousel handles Down itself, so a focus move never reaches it.
+                var top = window.rootViewController
+                while let presented = top?.presentedViewController { top = presented }
+                let carousel = top as? PreviewCarouselViewController
+                carousel?.debugDownNavigation()
+                try? await Task.sleep(for: .milliseconds(1500))
+                print("[Moves] \(index + 1) pdown moved=\(carousel != nil) focus=\(describeFocus(in: window))")
+                state("move-\(index + 1)")
+                try? await Task.sleep(for: .seconds(1.2))
+                continue
+            }
             if word == "select" {
                 // Select on the cards and summaries that take it.
                 let focused = UIFocusSystem.focusSystem(for: window)?.focusedItem
@@ -1809,6 +1821,15 @@ enum DebugFocusDriver {
                 (focused as? PlayerSummaryButton)?.onPress?()
                 (focused as? TransportControlButton)?.onPress?()
                 (focused as? CardTrackRowButton)?.onTap?()
+                (focused as? UIControl)?.sendActions(for: .primaryActionTriggered)
+                if let cell = focused as? UICollectionViewCell {
+                    var ancestor = cell.superview
+                    while let view = ancestor, !(view is UICollectionView) { ancestor = view.superview }
+                    if let collection = ancestor as? UICollectionView,
+                       let path = collection.indexPath(for: cell) {
+                        collection.delegate?.collectionView?(collection, didSelectItemAt: path)
+                    }
+                }
                 try? await Task.sleep(for: .milliseconds(800))
                 print("[Moves] \(index + 1) select focus=\(describeFocus(in: window))")
                 state("move-\(index + 1)")

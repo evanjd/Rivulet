@@ -1524,3 +1524,10 @@ extension PreviewCarouselViewController: UICollectionViewDataSource, UICollectio
 final class PreviewFocusAnchorView: UIView {
     override var canBecomeFocused: Bool { true }
 }
+
+#if DEBUG
+extension PreviewCarouselViewController {
+    /// The Down press, for the focus driver (`DebugFocusDriver`).
+    func debugDownNavigation() { handleDownNavigation() }
+}
+#endif
