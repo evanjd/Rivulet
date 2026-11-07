@@ -19,6 +19,8 @@ enum TopShelfFeed {
     // Composites run in call order, so the newest refresh writes last. An older one still
     // writes, but leaves pruning to the newer run, whose files it would otherwise delete.
     private static var generation = 0
+    // The last refresh that cleared or skipped the row; an older one must not write over it.
+    private static var heldBack = 0
 
     static func refresh() async {
         generation += 1
@@ -28,12 +30,14 @@ enum TopShelfFeed {
         // The Home screen row sits outside the PIN gate (a remembered PIN reopens it unasked).
         guard !auth.relocksOnLaunch || profiles.selectedUser.map(profiles.hasRememberedPin(for:)) ?? false else {
             DiagLog.notice(.topShelf, "Cleared: profile relocks and its PIN is not remembered")
+            heldBack = current
             TopShelfCache.shared.clear()
             return
         }
         // Until a Home profile is entered there is no Plex row to show; keep the last one.
         guard !auth.isContentWithheld else {
             DiagLog.notice(.topShelf, "Skipped: content withheld until a profile is entered")
+            heldBack = current
             return
         }
         let serverURL = auth.selectedServerURL
@@ -53,7 +57,7 @@ enum TopShelfFeed {
         recent.removeAll { cwKeys.contains($0.ratingKey) }
         let items = await TopShelfComposer.composite(items: row, serverURL: serverURL, token: token)
         // A profile changed, locked or signed out during the composite.
-        guard auth.selectedServerToken == token, ServerDataStore.shared.sources == sources else {
+        guard heldBack < current, auth.selectedServerToken == token, ServerDataStore.shared.sources == sources else {
             DiagLog.notice(.topShelf, "Dropped: profile or sources changed while composing")
             return
         }
