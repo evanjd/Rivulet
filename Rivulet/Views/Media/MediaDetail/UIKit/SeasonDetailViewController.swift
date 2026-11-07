@@ -346,7 +346,7 @@ final class SeasonDetailViewController: UIViewController, UICollectionViewDelega
     private func applyText() {
         showTitleLabel.text = showTitle
         showTitleLabel.isHidden = (showTitle ?? "").isEmpty || !logoView.isHidden
-        overviewLabel.text = season.overview
+        overviewLabel.setBodyText(season.overview)
         overviewLabel.isHidden = (season.overview ?? "").isEmpty
         playTitleLabel?.text = EpisodePicker.firstUnplayed(in: episodes)
             .map { EpisodePicker.playTitle(for: $0, on: .season) } ?? String(localized: "Play")
