@@ -19,8 +19,13 @@ nonisolated enum HostResolver {
                 }
                 if first { continuation.resume(returning: value) }
             }
-            DispatchQueue.global(qos: .userInitiated).async { finish(lookup(host)) }
-            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + timeout) { finish(nil) }
+            let timer = DispatchWorkItem { finish(nil) }
+            DispatchQueue.global(qos: .userInitiated).async {
+                let addresses = lookup(host)
+                timer.cancel()
+                finish(addresses)
+            }
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + timeout, execute: timer)
         }
     }
 

@@ -580,7 +580,8 @@ final class UniversalPlayerViewModel: ObservableObject {
     @Published private(set) var qualityChoice: StreamingQuality = .original
     /// What is playing: the untouched file, or a transcode at a step.
     @Published private(set) var activeStreamPlan: StreamPlan = .original
-    private var isHomeLocation = true
+    /// Decided with the stream plan; Away until then.
+    private var isHomeLocation = false
     /// Last successful probe; Up Next and menu changes reuse it for 10 minutes.
     private var lastThroughput: (kbps: Int, at: Date)?
     private var stallTracker = StallTracker()
@@ -3291,8 +3292,9 @@ final class UniversalPlayerViewModel: ObservableObject {
     /// Up Next may reuse a prewarmed direct URL only when nothing could turn the next item into a transcode.
     private var nextEpisodePlaysOriginal: Bool {
         guard !PlexRelay.isRelayURL(serverURL) else { return false }
-        // `isHomeLocation` was decided for this session with the server name looked up.
-        return (sessionQuality ?? StreamingQuality.setting(home: isHomeLocation)) == .original
+        // `isHomeLocation` was decided with the server name looked up; the path can turn Away since.
+        let home = isHomeLocation && !NetworkPathMonitor.shared.isAwayPath
+        return (sessionQuality ?? StreamingQuality.setting(home: home)) == .original
     }
 
     /// Auto's step-down: two stalls within a minute, or one lasting 10 s. Seeks and loads never count.
