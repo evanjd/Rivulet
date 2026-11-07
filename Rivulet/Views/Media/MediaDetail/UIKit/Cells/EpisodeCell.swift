@@ -95,7 +95,7 @@ final class EpisodeCell: UIView {
     private let thumbnailImageView = UIImageView()
 
     private var thumbHeightConstraint: NSLayoutConstraint!
-    private let trailerScrim = TrailerScrimView()
+    private let thumbScrim = ThumbScrimView()
     private let trailerTitleLabel = UILabel()
 
     private let durationBadge = UIView()
@@ -168,12 +168,11 @@ final class EpisodeCell: UIView {
         thumbnailImageView.clipsToBounds = true
         thumbnailCard.contentView.addSubview(thumbnailImageView)
 
-        // A trailer's title rides inside the artwork, over a scrim.
-        trailerScrim.translatesAutoresizingMaskIntoConstraints = false
-        trailerScrim.isHidden = true
-        thumbnailCard.contentView.addSubview(trailerScrim)
+        // The runtime, and a trailer's title, ride inside the artwork over a scrim.
+        thumbScrim.translatesAutoresizingMaskIntoConstraints = false
+        thumbnailCard.contentView.addSubview(thumbScrim)
         trailerTitleLabel.translatesAutoresizingMaskIntoConstraints = false
-        trailerTitleLabel.font = .systemFont(ofSize: 22, weight: .semibold)
+        trailerTitleLabel.font = .systemFont(ofSize: 23, weight: .medium)
         trailerTitleLabel.textColor = .white
         trailerTitleLabel.isHidden = true
         thumbnailCard.contentView.addSubview(trailerTitleLabel)
@@ -190,11 +189,11 @@ final class EpisodeCell: UIView {
         durationIcon.image = UIImage(systemName: "play.fill")
         durationIcon.tintColor = .white
         durationIcon.contentMode = .scaleAspectFit
-        durationIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 10, weight: .medium)
+        durationIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 13, weight: .medium)
         durationBadge.addSubview(durationIcon)
 
         durationLabel.translatesAutoresizingMaskIntoConstraints = false
-        durationLabel.font = .systemFont(ofSize: 17, weight: .semibold)
+        durationLabel.font = .systemFont(ofSize: 21, weight: .medium)
         durationLabel.textColor = .white
         durationBadge.addSubview(durationLabel)
 
@@ -252,20 +251,20 @@ final class EpisodeCell: UIView {
         ])
 
         episodeLabel.translatesAutoresizingMaskIntoConstraints = false
-        episodeLabel.font = .systemFont(ofSize: 18, weight: .semibold)
+        episodeLabel.font = .systemFont(ofSize: 21, weight: .medium)
         episodeLabel.textColor = UIColor.white.withAlphaComponent(0.6)
         descriptionBlock.addSubview(episodeLabel)
 
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.font = .systemFont(ofSize: 24, weight: .bold)
+        titleLabel.font = .systemFont(ofSize: 25, weight: .medium)
         titleLabel.textColor = .white
         titleLabel.numberOfLines = 1
         descriptionBlock.addSubview(titleLabel)
 
         summaryLabel.translatesAutoresizingMaskIntoConstraints = false
-        summaryLabel.font = .systemFont(ofSize: 21, weight: .medium)
+        summaryLabel.font = .systemFont(ofSize: 23, weight: .medium)
         summaryLabel.textColor = UIColor.white.withAlphaComponent(0.7)
-        summaryLabel.numberOfLines = layout == .sideBySide ? 3 : 2
+        summaryLabel.numberOfLines = 3
         descriptionBlock.addSubview(summaryLabel)
 
         footerRow.translatesAutoresizingMaskIntoConstraints = false
@@ -274,7 +273,7 @@ final class EpisodeCell: UIView {
         footerRow.spacing = 8
         descriptionBlock.addSubview(footerRow)
 
-        dateLabel.font = .systemFont(ofSize: 21, weight: .medium)
+        dateLabel.font = .systemFont(ofSize: 23, weight: .medium)
         dateLabel.textColor = UIColor.white.withAlphaComponent(0.78)
         footerRow.addArrangedSubview(dateLabel)
 
@@ -323,10 +322,10 @@ final class EpisodeCell: UIView {
             thumbnailCard.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -reserve),
             thumbHeightConstraint,
 
-            trailerScrim.leadingAnchor.constraint(equalTo: thumbnailCard.contentView.leadingAnchor),
-            trailerScrim.trailingAnchor.constraint(equalTo: thumbnailCard.contentView.trailingAnchor),
-            trailerScrim.bottomAnchor.constraint(equalTo: thumbnailCard.contentView.bottomAnchor),
-            trailerScrim.heightAnchor.constraint(equalToConstant: 120),
+            thumbScrim.leadingAnchor.constraint(equalTo: thumbnailCard.contentView.leadingAnchor),
+            thumbScrim.trailingAnchor.constraint(equalTo: thumbnailCard.contentView.trailingAnchor),
+            thumbScrim.bottomAnchor.constraint(equalTo: thumbnailCard.contentView.bottomAnchor),
+            thumbScrim.heightAnchor.constraint(equalToConstant: 120),
             trailerTitleLabel.leadingAnchor.constraint(equalTo: durationBadge.leadingAnchor),
             trailerTitleLabel.trailingAnchor.constraint(equalTo: thumbnailCard.contentView.trailingAnchor, constant: -16),
             trailerTitleLabel.bottomAnchor.constraint(equalTo: durationBadge.topAnchor, constant: -2),
@@ -398,9 +397,10 @@ final class EpisodeCell: UIView {
         subtypeIcon.isHidden = true
         splitFocus = true
         descriptionBlock.isFocusEligible = false
+        episodeLabel.isHidden = false
         episodeLabel.text = Self.episodeLabel(for: episode, showSeasonPrefix: showSeasonPrefix).uppercased()
         titleLabel.text = episode.title.isEmpty ? String(localized: "Episode") : episode.title
-        summaryLabel.text = episode.overview
+        summaryLabel.setBodyText(episode.overview)
         summaryLabel.isHidden = (episode.overview ?? "").isEmpty
         dateLabel.text = Self.displayDate(for: episode)
         dateLabel.isHidden = dateLabel.text == nil
@@ -501,7 +501,6 @@ final class EpisodeCell: UIView {
         let height = trailer ? Self.trailerThumbHeight : Self.thumbHeight
         thumbHeightConstraint.constant = height
         thumbnailCard.contentSize = CGSize(width: Self.cardWidth + MediaRowMetrics.focusGrowth, height: height)
-        trailerScrim.isHidden = !trailer
         trailerTitleLabel.isHidden = !trailer
         descriptionBlock.isHidden = trailer
     }
@@ -606,14 +605,15 @@ final class EpisodeCell: UIView {
     }()
 }
 
-/// Bottom darkening behind a trailer's in-card title.
-private final class TrailerScrimView: UIView {
+/// Bottom darkening behind the text inside a thumbnail, close to the Apple TV app's
+/// (measured: clear at half height, about 0.75 black at the bottom).
+private final class ThumbScrimView: UIView {
     override class var layerClass: AnyClass { CAGradientLayer.self }
     override init(frame: CGRect) {
         super.init(frame: frame)
         isUserInteractionEnabled = false
         let layer = self.layer as! CAGradientLayer
-        layer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.6).cgColor]
+        layer.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.8).cgColor]
     }
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }

@@ -157,6 +157,30 @@ enum MediaRowMetrics {
 
     /// Library poster grid: artwork top to the next row's artwork top (Apple's 55 between 390-tall tiles).
     static var posterGridPitch: CGFloat { poster.art.height + 55 }
+
+    /// Multi-line copy's line pitch: point size + 7, measured on the Apple TV app
+    /// (23 pt pitches at 30, 25 pt at 32).
+    static func bodyParagraphStyle(for font: UIFont) -> NSParagraphStyle {
+        let style = NSMutableParagraphStyle()
+        style.lineSpacing = max(0, font.pointSize + 7 - font.lineHeight)
+        style.lineBreakMode = .byTruncatingTail
+        return style
+    }
+}
+
+extension UILabel {
+    /// Sets multi-line copy in the label's font and color at the shared line pitch.
+    func setBodyText(_ text: String?) {
+        guard let text, let font, let textColor else {
+            attributedText = nil
+            return
+        }
+        attributedText = NSAttributedString(string: text, attributes: [
+            .font: font,
+            .foregroundColor: textColor,
+            .paragraphStyle: MediaRowMetrics.bodyParagraphStyle(for: font)
+        ])
+    }
 }
 
 extension NSLayoutConstraint {

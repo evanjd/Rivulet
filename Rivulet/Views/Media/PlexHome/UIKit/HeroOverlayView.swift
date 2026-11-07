@@ -842,7 +842,7 @@ private final class MediaItemSlideView: UIView {
         metadataRow.addArrangedSubview(ratingBadge)
         ratingBadge.isHidden = true
 
-        taglineLabel.font = .systemFont(ofSize: 22, weight: .regular)
+        taglineLabel.font = .systemFont(ofSize: 25, weight: .medium)
         taglineLabel.textColor = UIColor.white.withAlphaComponent(0.85)
         taglineLabel.numberOfLines = 2
 
@@ -894,7 +894,7 @@ private final class MediaItemSlideView: UIView {
         }
 
         // Tagline: overview first sentence.
-        taglineLabel.text = tagline(for: item)
+        taglineLabel.setBodyText(tagline(for: item))
 
         // An episode's slide is its show's: the show's logo and name.
         let title = item.kind == .episode ? (item.seriesTitle ?? item.title) : item.title

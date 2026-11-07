@@ -54,8 +54,9 @@ final class BelowFoldCollectionView: UIView, UICollectionViewDelegate {
     private static let episodeWidth: CGFloat = EpisodeCell.cardWidth
     /// Spacing between episode cards (and season dividers).
     static let episodeGap: CGFloat = MediaRowMetrics.tileGap
-    /// The thumb frame plus the text block below it.
-    private static let episodeHeight: CGFloat = EpisodeCell.thumbHeight + 190
+    /// The thumb frame plus the text block below it at its tallest, with no slack:
+    /// change `EpisodeCell`'s text fonts, spacing or line count and this must follow.
+    private static let episodeHeight: CGFloat = EpisodeCell.thumbHeight + 215
     private static let trailerWidth: CGFloat = EpisodeCell.cardWidth
     // The trailer frame: 410 x 278 artwork plus the focus reserve, title inside.
     private static let trailerHeight: CGFloat = EpisodeCell.trailerThumbHeight
@@ -140,7 +141,6 @@ final class BelowFoldCollectionView: UIView, UICollectionViewDelegate {
         collectionView.remembersLastFocusedIndexPath = false
         collectionView.register(EpisodeCollectionCell.self, forCellWithReuseIdentifier: EpisodeCollectionCell.reuseID)
         collectionView.register(SeasonDividerCell.self, forCellWithReuseIdentifier: SeasonDividerCell.reuseID)
-        collectionView.register(TrailerCollectionCell.self, forCellWithReuseIdentifier: TrailerCollectionCell.reuseID)
         collectionView.register(ShelfRowCell.self, forCellWithReuseIdentifier: ShelfRowCell.reuseID)
         collectionView.register(CastCollectionCell.self, forCellWithReuseIdentifier: CastCollectionCell.reuseID)
         collectionView.register(AboutCollectionCell.self, forCellWithReuseIdentifier: AboutCollectionCell.reuseID)

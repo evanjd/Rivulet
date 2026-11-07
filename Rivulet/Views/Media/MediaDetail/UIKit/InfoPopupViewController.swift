@@ -252,12 +252,12 @@ enum InfoPopupContent {
         let stack = verticalStack(spacing: 10)
         stack.addArrangedSubview(label(title, size: 31, weight: .bold, color: .white, lines: 2))
         if let subtitle, !subtitle.isEmpty {
-            let s = label(subtitle, size: 20, weight: .medium, color: .white.withAlphaComponent(0.6), lines: 1)
+            let s = label(subtitle, size: 25, weight: .medium, color: .white, lines: 1)
             stack.addArrangedSubview(s)
             stack.setCustomSpacing(20, after: s)
         }
         if let body, !body.isEmpty {
-            stack.addArrangedSubview(label(body, size: 24, weight: .regular, color: .white.withAlphaComponent(0.9), lines: 0))
+            stack.addArrangedSubview(bodyLabel(body))
         }
         return stack
     }
@@ -320,21 +320,25 @@ enum InfoPopupContent {
     /// sections stacked vertically. Present with `scrollable: true`.
     static func fullInfo(detail: MediaItemDetail) -> UIView {
         let stack = verticalStack(spacing: 16)
-        stack.addArrangedSubview(label(detail.item.title, size: 31, weight: .bold, color: .white, lines: 2))
+        let titleLabel = label(detail.item.title, size: 31, weight: .bold, color: .white, lines: 2)
+        stack.addArrangedSubview(titleLabel)
         if let genre = detail.genres.first, !genre.isEmpty {
-            stack.addArrangedSubview(label(genre, size: 21, weight: .semibold, color: .white.withAlphaComponent(0.6), lines: 1))
+            // Title and genre read as one block, as in the Apple TV app's popup.
+            stack.setCustomSpacing(2, after: titleLabel)
+            let genreLabel = label(genre, size: 25, weight: .medium, color: .white, lines: 1)
+            stack.addArrangedSubview(genreLabel)
+            stack.setCustomSpacing(28, after: genreLabel)
         }
         let overviewText = detail.item.overview?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let overviewText, !overviewText.isEmpty {
-            let syn = label(overviewText, size: 24, weight: .regular, color: .white.withAlphaComponent(0.9), lines: 0)
+            let syn = bodyLabel(overviewText)
             stack.addArrangedSubview(syn)
             stack.setCustomSpacing(22, after: syn)
         } else {
             // Seasons (and some shows) carry no synopsis of their own on Plex,
             // which left the popup showing only the title. Say so rather than
             // render a blank card.
-            let placeholder = label(String(localized: "No information found on Plex."), size: 24, weight: .regular,
-                                     color: .white.withAlphaComponent(0.5), lines: 0)
+            let placeholder = bodyLabel(String(localized: "No information found on Plex."), color: .white.withAlphaComponent(0.5))
             stack.addArrangedSubview(placeholder)
             stack.setCustomSpacing(22, after: placeholder)
         }
@@ -401,29 +405,45 @@ enum InfoPopupContent {
     }
 
     private static func metaRow(_ detail: MediaItemDetail) -> UIView {
-        let row = UIStackView()
-        row.axis = .horizontal
-        row.alignment = .center
-        row.spacing = 10
         var parts: [String] = []
         if let y = detail.item.year { parts.append("\(y)") }
         if let rt = detail.item.runtime, rt > 0 { parts.append(runtimeString(rt)) }
         if let r = detail.contentRating, !r.isEmpty { parts.append(r) }
-        if !parts.isEmpty {
-            row.addArrangedSubview(label(parts.joined(separator: "  ·  "), size: 20, weight: .semibold, color: .white.withAlphaComponent(0.7), lines: 1))
-        }
         let source = detail.primarySource
         var badges = source?.qualityBadges() ?? []
         if source?.subtitleTracks.contains(where: { $0.isHearingImpaired }) ?? false { badges.append("SDH") }
         if source?.audioTracks.contains(where: { ($0.title ?? $0.extendedTitle ?? "").localizedCaseInsensitiveContains("descri") }) ?? false { badges.append("AD") }
-        for raw in badges {
+        return metaRow(text: parts.joined(separator: "  ·  "), badges: badges)
+    }
+
+    /// One line when the text and badges fit the popup, else the badges drop to a second line.
+    static func metaRow(text: String, badges: [String]) -> UIView {
+        let spacing: CGFloat = 10
+        let textViews: [UIView] = text.isEmpty ? [] : [label(text, size: 25, weight: .medium, color: .white.withAlphaComponent(0.85), lines: 1)]
+        let badgeViews: [UIView] = badges.compactMap { raw in
             let text = raw.replacingOccurrences(of: "\\([^)]*\\)", with: "", options: .regularExpression).trimmingCharacters(in: .whitespaces)
-            if !text.isEmpty { row.addArrangedSubview(badgeLabel(text)) }
+            return text.isEmpty ? nil : badgeLabel(text)
         }
-        let spacer = UIView()
-        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
-        row.addArrangedSubview(spacer)
-        return row
+        func line(_ views: [UIView]) -> UIStackView {
+            let row = UIStackView(arrangedSubviews: views)
+            row.axis = .horizontal
+            row.alignment = .center
+            row.spacing = spacing
+            let spacer = UIView()
+            spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            row.addArrangedSubview(spacer)
+            return row
+        }
+        let all = textViews + badgeViews
+        let needed = all.reduce(0) { $0 + $1.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).width }
+            + spacing * CGFloat(max(0, all.count - 1))
+        if needed <= InfoPopupViewController.infoWidth - 2 * PreviewCarouselGeometry.expandedChromeInset || textViews.isEmpty || badgeViews.isEmpty {
+            return line(all)
+        }
+        let stack = verticalStack(spacing: spacing)
+        stack.addArrangedSubview(line(textViews))
+        stack.addArrangedSubview(line(badgeViews))
+        return stack
     }
 
     private static func badgeLabel(_ text: String) -> UIView {
@@ -497,6 +517,13 @@ enum InfoPopupContent {
     }
 
     // MARK: helpers
+
+    /// Long copy: 25 pt at the shared line pitch, as the Apple TV app's popup sets it.
+    private static func bodyLabel(_ text: String, color: UIColor = .white.withAlphaComponent(0.9)) -> UILabel {
+        let l = label(text, size: 25, weight: .medium, color: color, lines: 0)
+        l.setBodyText(text)
+        return l
+    }
 
     private static func verticalStack(spacing: CGFloat) -> UIStackView {
         let s = UIStackView()

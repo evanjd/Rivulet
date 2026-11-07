@@ -586,16 +586,20 @@ final class MediaDetailChromeView: UIView {
                 .font: UIFont.systemFont(ofSize: 23, weight: .bold), .foregroundColor: color])
             attr.append(NSAttributedString(string: overview, attributes: [
                 .font: Self.descriptionFont, .foregroundColor: color]))
+            attr.addAttribute(.paragraphStyle, value: MediaRowMetrics.bodyParagraphStyle(for: Self.descriptionFont),
+                              range: NSRange(location: 0, length: attr.length))
             descriptionLabel.attributedText = attr
         } else if let overview = detail.item.overview, !overview.isEmpty {
-            descriptionLabel.text = overview
             descriptionLabel.font = Self.descriptionFont
+            descriptionLabel.setBodyText(overview)
         }
         let topCast = detail.cast.prefix(3).map { $0.name }
         if !topCast.isEmpty {
             let attr = NSMutableAttributedString(string: String(localized: "Starring "), attributes: [
                 .foregroundColor: UIColor.white.withAlphaComponent(Self.rolesLabelAlpha)])
             attr.append(NSAttributedString(string: topCast.joined(separator: ", ")))
+            attr.addAttribute(.paragraphStyle, value: MediaRowMetrics.bodyParagraphStyle(for: Self.captionFont),
+                              range: NSRange(location: 0, length: attr.length))
             castLabel.attributedText = attr
         } else {
             castLabel.attributedText = nil

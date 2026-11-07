@@ -21,11 +21,7 @@ final class HeroSlideView: UIView {
 
     static let maxLogoHeight: CGFloat = 180, maxTaglineWidth: CGFloat = 720, rowSpacing: CGFloat = 18
     private static let metadataFont = UIFont.systemFont(ofSize: 25, weight: .medium)
-    private static let taglineFont = UIFont.systemFont(ofSize: 25, weight: .regular)
-    /// The stack at its tallest: a full-height logo, the metadata row, two tagline lines.
-    static var maxHeight: CGFloat {
-        maxLogoHeight + rowSpacing + ceil(metadataFont.lineHeight) + rowSpacing + 2 * ceil(taglineFont.lineHeight)
-    }
+    private static let taglineFont = UIFont.systemFont(ofSize: 25, weight: .medium)
 
     // MARK: - Image loading state
 
@@ -152,7 +148,7 @@ final class HeroSlideView: UIView {
         }
 
         // Tagline
-        taglineLabel.text = tagline(for: item)
+        taglineLabel.setBodyText(tagline(for: item))
 
         // Logo / fallback title. Loaded LAST so `onReady` fires only after every
         // piece of content (metadata, tagline, logo) is final. Callers gate a
