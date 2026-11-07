@@ -16,10 +16,10 @@ import UIKit
 enum TopShelfComposer {
 
     /// Returns items with `logoImageURL` / `compositeFileName` populated where a
-    /// composite was produced. Prunes composite files to the current set.
+    /// composite was produced. The caller prunes old files once it writes the result.
     @MainActor
     static func composite(items: [TopShelfItem], serverURL: String?, token: String?) async -> [TopShelfItem] {
-        // One run at a time, in call order: a prune never sees another run's files.
+        // One run at a time, in call order.
         let previous = inFlight
         let task = Task { @MainActor in
             _ = await previous?.value
@@ -34,7 +34,6 @@ enum TopShelfComposer {
     @MainActor
     private static func run(items: [TopShelfItem], serverURL: String?, token: String?) async -> [TopShelfItem] {
         var result: [TopShelfItem] = []
-        var keptFiles: Set<String> = []
 
         for item in items {
             var logoURLString = item.logoImageURL
@@ -69,7 +68,6 @@ enum TopShelfComposer {
                           TopShelfCache.shared.writeComposite(data, fileName: fileName) {
                     compositeFileName = fileName
                 }
-                if let compositeFileName { keptFiles.insert(compositeFileName) }
             }
 
             result.append(TopShelfItem(
@@ -87,8 +85,6 @@ enum TopShelfComposer {
             ))
         }
 
-        // 3. Prune any composite files not in the current set.
-        TopShelfCache.shared.pruneComposites(keeping: keptFiles)
         return result
     }
 

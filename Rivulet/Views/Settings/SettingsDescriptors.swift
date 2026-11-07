@@ -122,7 +122,7 @@ enum SettingsDescriptorStore {
         ),
         "topShelfContent": SettingDescriptor(
             icon: "tv",
-            description: "What the top row of the Apple TV Home Screen shows. Continue Watching shows what you are watching, with Recently Added after it. Recently Added shows the newest titles you haven't watched."
+            description: "What the top row of the Apple TV Home Screen shows. Continue Watching shows what you are watching, with Recently Added after it. Recently Added shows the newest titles you haven't watched. When the chosen row is empty, the other one shows."
         ),
         "topShelfStyle": SettingDescriptor(
             icon: "tv",
